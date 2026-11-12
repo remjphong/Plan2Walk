@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "allowImportingTsExtensions": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "types": [
+      "node",
+      "vite/client"
+    ],
+    "resolveJsonModule": true
+  },
+  "include": [
+    "frontend/src",
+    "server",
+    "shared",
+    "vite.config.ts",
+    "geometry",
+    "assets",
+    "tests",
+    "scripts"
+  ]
+}

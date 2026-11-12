@@ -1,0 +1,38 @@
+node_modules/
+.env
+.env.*
+!.env.example
+dist/
+dist-server/
+.DS_Store
+*.log
+plan2walk-rush/
+*.bak
+data/raw/
+data/reference/
+data/predictions/
+.env*
+!.env.example
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Dependencies and builds
+node_modules/
+dist/
+dist-server/
+coverage/
+*.log
+
+# Archived Git history
+git-history.bundle
+
+# Private floorplan dataset
+data/**/*.png
+data/**/*.jpg
+data/**/*.jpeg
+data/**/*.webp
+data/**/*.pdf
+data/**/*.zip

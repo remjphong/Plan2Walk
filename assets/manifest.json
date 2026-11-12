@@ -1,0 +1,260 @@
+[
+  {
+    "id": "bunk_bed",
+    "path": "/models/bedbunk.glb",
+    "aliases": [
+      "bunk_bed",
+      "giường tầng"
+    ],
+    "nativeAccessorDimensions": [
+      1.6232443541000001,
+      0.979999964,
+      1.892
+    ],
+    "dimensionsNote": "native accessor units; scene normalized at load; not real dimensions",
+    "rotationY": 0,
+    "orientation": "Y-up; front as authored, user adjustable",
+    "license": "CC0-1.0",
+    "source": "Kenney via Hidencod/tge-assets",
+    "url": "https://raw.githubusercontent.com/Hidencod/tge-assets/3ddcc695adbba9fb918cf31b7c139b3f95b76910/packs/furniture-kit/bedbunk.glb",
+    "commit": "3ddcc695adbba9fb918cf31b7c139b3f95b76910",
+    "sha256": "a3eccbc4a04340dd84878d959e15eede76f517fb8d4de6862ca46877c88d764e"
+  },
+  {
+    "id": "double_bed",
+    "path": "/models/beddouble.glb",
+    "aliases": [
+      "double_bed",
+      "giường đôi",
+      "bed"
+    ],
+    "nativeAccessorDimensions": [
+      1.6232443541000001,
+      0.505,
+      1.912
+    ],
+    "dimensionsNote": "native accessor units; scene normalized at load; not real dimensions",
+    "rotationY": 0,
+    "orientation": "Y-up; front as authored, user adjustable",
+    "license": "CC0-1.0",
+    "source": "Kenney via Hidencod/tge-assets",
+    "url": "https://raw.githubusercontent.com/Hidencod/tge-assets/3ddcc695adbba9fb918cf31b7c139b3f95b76910/packs/furniture-kit/beddouble.glb",
+    "commit": "3ddcc695adbba9fb918cf31b7c139b3f95b76910",
+    "sha256": "c49b33e7d797d2ba1111895587dba7ff63b17a712eb9b4ceeb40a598f73e476c"
+  },
+  {
+    "id": "desk",
+    "path": "/models/desk.glb",
+    "aliases": [
+      "desk",
+      "bàn học",
+      "bàn làm việc"
+    ],
+    "nativeAccessorDimensions": [
+      0.734475443,
+      0.38440755,
+      0.556299989
+    ],
+    "dimensionsNote": "native accessor units; scene normalized at load; not real dimensions",
+    "rotationY": 0,
+    "orientation": "Y-up; front as authored, user adjustable",
+    "license": "CC0-1.0",
+    "source": "Kenney via Hidencod/tge-assets",
+    "url": "https://raw.githubusercontent.com/Hidencod/tge-assets/3ddcc695adbba9fb918cf31b7c139b3f95b76910/packs/furniture-kit/desk.glb",
+    "commit": "3ddcc695adbba9fb918cf31b7c139b3f95b76910",
+    "sha256": "0164fe828f028b321730fb8c74502e353583f751be74da1682d42fff7d3c5a42"
+  },
+  {
+    "id": "bookshelf",
+    "path": "/models/bookcaseopen.glb",
+    "aliases": [
+      "bookshelf",
+      "giá sách",
+      "kệ sách"
+    ],
+    "nativeAccessorDimensions": [
+      0.4,
+      0.879999936,
+      0.25
+    ],
+    "dimensionsNote": "native accessor units; scene normalized at load; not real dimensions",
+    "rotationY": 0,
+    "orientation": "Y-up; front as authored, user adjustable",
+    "license": "CC0-1.0",
+    "source": "Kenney via Hidencod/tge-assets",
+    "url": "https://raw.githubusercontent.com/Hidencod/tge-assets/3ddcc695adbba9fb918cf31b7c139b3f95b76910/packs/furniture-kit/bookcaseopen.glb",
+    "commit": "3ddcc695adbba9fb918cf31b7c139b3f95b76910",
+    "sha256": "750702218d68c062b15dfef6ab06a4014d1cfa8bd05f02e57c53b7e13bec157c"
+  },
+  {
+    "id": "toilet",
+    "path": "/models/toilet.glb",
+    "aliases": [
+      "toilet",
+      "bồn cầu"
+    ],
+    "nativeAccessorDimensions": [
+      1.0045825200000016,
+      0.9494,
+      0.789708264
+    ],
+    "dimensionsNote": "native accessor units; scene normalized at load; not real dimensions",
+    "rotationY": 0,
+    "orientation": "Y-up; front as authored, user adjustable",
+    "license": "CC0-1.0",
+    "source": "Kenney via Hidencod/tge-assets",
+    "url": "https://raw.githubusercontent.com/Hidencod/tge-assets/3ddcc695adbba9fb918cf31b7c139b3f95b76910/packs/furniture-kit/toilet.glb",
+    "commit": "3ddcc695adbba9fb918cf31b7c139b3f95b76910",
+    "sha256": "16165cfd03c56c2cb443b800570810a22ef770f65e7a468f6761d9dc14eaaeae"
+  },
+  {
+    "id": "sink",
+    "path": "/models/bathroomsink.glb",
+    "aliases": [
+      "sink",
+      "lavabo",
+      "bồn rửa"
+    ],
+    "nativeAccessorDimensions": [
+      0.34,
+      0.56,
+      0.29
+    ],
+    "dimensionsNote": "native accessor units; scene normalized at load; not real dimensions",
+    "rotationY": 0,
+    "orientation": "Y-up; front as authored, user adjustable",
+    "license": "CC0-1.0",
+    "source": "Kenney via Hidencod/tge-assets",
+    "url": "https://raw.githubusercontent.com/Hidencod/tge-assets/3ddcc695adbba9fb918cf31b7c139b3f95b76910/packs/furniture-kit/bathroomsink.glb",
+    "commit": "3ddcc695adbba9fb918cf31b7c139b3f95b76910",
+    "sha256": "39d4f19608cab7e0fed52303b2c689f5f51fae1bad9b6913cb53d838875e797e"
+  },
+  {
+    "id": "shower",
+    "path": "/models/shower.glb",
+    "aliases": [
+      "shower",
+      "vòi tắm",
+      "khu tắm"
+    ],
+    "nativeAccessorDimensions": [
+      1.3,
+      2.49267077,
+      1.2800000000000145
+    ],
+    "dimensionsNote": "native accessor units; scene normalized at load; not real dimensions",
+    "rotationY": 0,
+    "orientation": "Y-up; front as authored, user adjustable",
+    "license": "CC0-1.0",
+    "source": "Kenney via Hidencod/tge-assets",
+    "url": "https://raw.githubusercontent.com/Hidencod/tge-assets/3ddcc695adbba9fb918cf31b7c139b3f95b76910/packs/furniture-kit/shower.glb",
+    "commit": "3ddcc695adbba9fb918cf31b7c139b3f95b76910",
+    "sha256": "25c1cebad681fe369dc04839a8f08f5da2ccbd99b3a70aa83fe2e4d1590c6951"
+  },
+  {
+    "id": "bathtub",
+    "path": "/models/bathtub.glb",
+    "aliases": [
+      "bathtub",
+      "bồn tắm"
+    ],
+    "nativeAccessorDimensions": [
+      1.19,
+      0.4200000000000003,
+      0.56
+    ],
+    "dimensionsNote": "native accessor units; scene normalized at load; not real dimensions",
+    "rotationY": 0,
+    "orientation": "Y-up; front as authored, user adjustable",
+    "license": "CC0-1.0",
+    "source": "Kenney via Hidencod/tge-assets",
+    "url": "https://raw.githubusercontent.com/Hidencod/tge-assets/3ddcc695adbba9fb918cf31b7c139b3f95b76910/packs/furniture-kit/bathtub.glb",
+    "commit": "3ddcc695adbba9fb918cf31b7c139b3f95b76910",
+    "sha256": "54c405c7035aab63dc41e709dc3c50fc5bcfbc4cddc91ffc54188075a6d25d01"
+  },
+  {
+    "id": "stairs",
+    "path": "/models/stairs.glb",
+    "aliases": [
+      "stairs",
+      "cầu thang"
+    ],
+    "nativeAccessorDimensions": [
+      1.82343483,
+      1.3395316599999987,
+      0.789999962
+    ],
+    "dimensionsNote": "native accessor units; scene normalized at load; not real dimensions",
+    "rotationY": 0,
+    "orientation": "Y-up; front as authored, user adjustable",
+    "license": "CC0-1.0",
+    "source": "Kenney via Hidencod/tge-assets",
+    "url": "https://raw.githubusercontent.com/Hidencod/tge-assets/3ddcc695adbba9fb918cf31b7c139b3f95b76910/packs/furniture-kit/stairs.glb",
+    "commit": "3ddcc695adbba9fb918cf31b7c139b3f95b76910",
+    "sha256": "b442f997583e417fcb32ec89470ecc441b0556f416d3afe00e3f18c806e556a0"
+  },
+  {
+    "id": "stove",
+    "path": "/models/kitchenstove.glb",
+    "aliases": [
+      "stove",
+      "bếp"
+    ],
+    "nativeAccessorDimensions": [
+      0.43,
+      0.45,
+      0.4800000012
+    ],
+    "dimensionsNote": "native accessor units; scene normalized at load; not real dimensions",
+    "rotationY": 0,
+    "orientation": "Y-up; front as authored, user adjustable",
+    "license": "CC0-1.0",
+    "source": "Kenney via Hidencod/tge-assets",
+    "url": "https://raw.githubusercontent.com/Hidencod/tge-assets/3ddcc695adbba9fb918cf31b7c139b3f95b76910/packs/furniture-kit/kitchenstove.glb",
+    "commit": "3ddcc695adbba9fb918cf31b7c139b3f95b76910",
+    "sha256": "3239edb36295dfca9530a9b9a6ad0aff98ce62e7cf8d13ca2a5a1a6b2a904656"
+  },
+  {
+    "id": "television",
+    "path": "/models/televisionmodern.glb",
+    "aliases": [
+      "television",
+      "tivi",
+      "tv"
+    ],
+    "nativeAccessorDimensions": [
+      0.6848,
+      0.45475,
+      0.1284
+    ],
+    "dimensionsNote": "native accessor units; scene normalized at load; not real dimensions",
+    "rotationY": 0,
+    "orientation": "Y-up; front as authored, user adjustable",
+    "license": "CC0-1.0",
+    "source": "Kenney via Hidencod/tge-assets",
+    "url": "https://raw.githubusercontent.com/Hidencod/tge-assets/3ddcc695adbba9fb918cf31b7c139b3f95b76910/packs/furniture-kit/televisionmodern.glb",
+    "commit": "3ddcc695adbba9fb918cf31b7c139b3f95b76910",
+    "sha256": "d89519ad0a5f28b5b0dccb0d83209dccf610cda959578238dd21bbf9e219cfc6"
+  },
+  {
+    "id": "sofa",
+    "path": "/models/couch.glb",
+    "aliases": [
+      "sofa",
+      "ghế sofa"
+    ],
+    "nativeAccessorDimensions": [
+      3.000000238418579,
+      1.2240597009658813,
+      1.600000023841858
+    ],
+    "dimensionsNote": "native accessor units; scene normalized at load; not real dimensions",
+    "rotationY": 0,
+    "orientation": "Y-up; front as authored, user adjustable",
+    "license": "CC0-1.0",
+    "source": "KayKit via OpenHome3D",
+    "url": "https://raw.githubusercontent.com/yuyou-dev/OpenHome3D/cb52afc00201b4b7ed90b24631e977112ba07869/public/models/kaykit-furniture/couch.glb",
+    "commit": "cb52afc00201b4b7ed90b24631e977112ba07869",
+    "sha256": "95ab80775e63bde585dec86ba5e86f345b2acc7054ba4c8da527c1ceb5024aa8"
+  }
+]

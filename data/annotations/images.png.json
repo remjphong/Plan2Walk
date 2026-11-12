@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "annotation-1",
+  "image_sha256": "8ec1065e7a5213191e9a0329575bb83e6c8517898dccc739195a7a4bf3e39d61",
+  "review": {
+    "status": "unreviewed",
+    "reviewer": null,
+    "reviewedAt": null
+  },
+  "plan": null
+}

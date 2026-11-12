@@ -1,0 +1,2 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {AnnotationSchema} from '../shared/annotation.ts';
+test('a candidate cannot be silently promoted to verified ground truth',()=>{const a={schemaVersion:'annotation-1',image_sha256:'0'.repeat(64),review:{status:'human_verified',reviewer:null,reviewedAt:null},plan:null};assert.equal(AnnotationSchema.safeParse(a).success,false);a.review.status='candidate';assert.equal(AnnotationSchema.safeParse(a).success,true);});

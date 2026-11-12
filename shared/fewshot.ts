@@ -1,0 +1,2 @@
+/** Never promote AI output or holdout data to few-shot ground truth. */
+export function selectExamples<T extends {family:string;split:string;split_reviewed:boolean;reviewedBy:string;plan:{processingStatus:string}}>(items:T[],targetFamily:string){return items.filter(e=>e.family!==targetFamily&&e.split==='development'&&e.split_reviewed&&e.reviewedBy.trim()&&e.plan.processingStatus==='reviewed').sort((a,b)=>a.family.localeCompare(b.family)).filter((e,i,all)=>all.findIndex(x=>x.family===e.family)===i).slice(0,2);}

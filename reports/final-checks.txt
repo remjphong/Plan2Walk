@@ -1,0 +1,86 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> plan2walk-rush@1.0.0 check
+> tsc --noEmit
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> plan2walk-rush@1.0.0 test
+> node --import tsx --test tests/*.test.ts
+
+✔ a candidate cannot be silently promoted to verified ground truth (5.388469ms)
+✔ provider 401 safely classified (4.891131ms)
+✔ provider 429 safely classified (0.458861ms)
+✔ provider 400 safely classified (0.44686ms)
+✔ provider timeout is classified; malformed/truncated JSON rejected (7.848778ms)
+✔ temporary 5xx retries once, successful AI scale never auto-verified (258.183701ms)
+✔ MIME signature and megapixel limits (0.480756ms)
+✔ HTTP upload integration: success, invalid mime, oversize, missing file, quota (108.938586ms)
+✔ ten detections with three unknown models preserve all report rows (1.957231ms)
+✔ GLB 404 falls back without failing other objects (1.310338ms)
+✔ missing bbox is reported and CSV escapes formula labels (0.749468ms)
+✔ all twelve shipped GLBs match pinned hashes, magic and license (5.688258ms)
+✔ IoU known disjoint and intersecting boxes (5.29388ms)
+✔ identical geometry matched, removed room penalizes recall (14.553395ms)
+✔ few-shot excludes holdout, unreviewed, same-family and limits context (25.170264ms)
+✔ legacy bunk bedroom remains renderable, unknown scale unverified (14.165583ms)
+✔ ensuite two rooms, multiple doors and window are cut into solid walls (1.284992ms)
+✔ L-shape preserves floor area and rejects notch as walkable (0.802829ms)
+✔ self intersecting polygon and repeated vertices rejected (0.223934ms)
+✔ out of wall opening is not silently clamped (0.937294ms)
+✔ duplicate wall removed; adjacent collinear wall retained (0.718543ms)
+✔ missing fields fail schema; unknown objects and missing bbox preserved (7.428812ms)
+✔ multiple floorplans flagged, other levels not flattened (1.089908ms)
+✔ overlap rooms and missing host yield actionable issue codes (0.718863ms)
+✔ object blocking the bathroom doorway is reported (1.542112ms)
+✔ Three.js triangulates concave floor without filling L notch (5.782084ms)
+✔ shipped Kenney bunk GLB decodes to finite geometry using actual GLTFLoader (16.511663ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1236.747909
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> plan2walk-rush@1.0.0 build
+> vite build && esbuild server/index.ts --bundle --platform=node --format=esm --packages=external --outfile=dist-server/index.mjs
+
+vite v7.3.8 building client environment for production...
+transforming...
+node_modules/zod/v4/core/util.js (400:0): A comment
+
+"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+
+in "node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+node_modules/zod/v4/core/regexes.js (74:0): A comment
+
+"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+ * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+ * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+
+in "node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+✓ 139 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/index.html                   0.47 kB │ gzip:   0.30 kB
+../dist/assets/index-CzHs2Gyl.css    6.31 kB │ gzip:   2.12 kB
+../dist/assets/index-BnkDyyZh.js   975.23 kB │ gzip: 268.57 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 3.81s
+
+  dist-server/index.mjs  20.8kb
+
+⚡ Done in 10ms
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> plan2walk-rush@1.0.0 evaluate
+> node --import tsx scripts/evaluate.ts
+
+{"n":19,"scored":0,"statuses":{"not_run":19}}
