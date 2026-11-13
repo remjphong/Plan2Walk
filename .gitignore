@@ -1,38 +1,27 @@
-node_modules/
-.env
-.env.*
-!.env.example
-dist/
-dist-server/
-.DS_Store
-*.log
-plan2walk-rush/
-*.bak
-data/raw/
-data/reference/
-data/predictions/
-.env*
-!.env.example
-
-# Environment variables
-.env
-.env.*
-!.env.example
-
-# Dependencies and builds
+# Dependencies and build output
 node_modules/
 dist/
-dist-server/
 coverage/
+*.tsbuildinfo
+
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+*.local
+*.pem
+*.key
+
+# Test and development output
+test-results/
+playwright-report/
+playwright/.cache/
+.vite/
 *.log
 
-# Archived Git history
-git-history.bundle
-
-# Private floorplan dataset
-data/**/*.png
-data/**/*.jpg
-data/**/*.jpeg
-data/**/*.webp
-data/**/*.pdf
-data/**/*.zip
+# Editor and OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini

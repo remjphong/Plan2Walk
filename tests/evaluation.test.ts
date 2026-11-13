@@ -1,3 +1,0 @@
-import {test} from 'node:test';import assert from 'node:assert/strict';import {bboxIoU,evaluate,polygonIoU} from '../shared/evaluation.ts';import {ensuite} from './fixtures.ts';
-test('IoU known disjoint and intersecting boxes',()=>{assert.equal(bboxIoU([0,0,2,2],[1,0,2,2]),1/3);assert.equal(bboxIoU([0,0,1,1],[2,2,1,1]),0);assert.equal(polygonIoU([[0,0],[2,0],[2,2],[0,2]],[[0,0],[2,0],[2,2],[0,2]]),1);});
-test('identical geometry matched, removed room penalizes recall',()=>{const gt=ensuite(),pred=ensuite();let m=evaluate(pred,gt);assert.equal(m.rooms.recall,1);assert.equal(m.openings.recall,1);assert.equal(m.wallEndpointToPredictionDistance_px,0);pred.rooms.pop();m=evaluate(pred,gt);assert.equal(m.rooms.recall,.5);assert.equal(m.relativeScaleError,null);});

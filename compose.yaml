@@ -1,0 +1,40 @@
+name: plan2walk
+
+services:
+  frontend:
+    build:
+      context: .
+      target: frontend
+    ports:
+      - "127.0.0.1:${PLAN2WALK_PORT:-8102}:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 10s
+      timeout: 3s
+      start_period: 15s
+      retries: 3
+
+  backend:
+    build:
+      context: .
+      target: backend
+    environment:
+      VISION_PROVIDER: ${VISION_PROVIDER:-gemini}
+      GEMINI_MODEL: ${GEMINI_MODEL:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT:-}
+      GOOGLE_CLOUD_LOCATION: ${GOOGLE_CLOUD_LOCATION:-}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-flash}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+    init: true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      start_period: 15s
+      retries: 3

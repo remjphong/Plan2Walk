@@ -1,0 +1,23 @@
+:root {
+  --motion-quick: 140ms;
+  --motion-change: 170ms;
+  --motion-enter: 290ms;
+  --motion-ease: cubic-bezier(.2,.72,.27,1);
+}
+.tab-indicator { transition: transform var(--motion-change) var(--motion-ease); }
+.primary, .outline, .square, .drop-zone, .thumbnail, .text-button { transition: background-color var(--motion-quick), color var(--motion-quick), border-color var(--motion-quick); }
+.open-art { animation: studio-enter 420ms var(--motion-ease) both; }
+.source-screen, .status-workspace, .review-workspace > .pane, .review-workspace > .inspector { animation: settle var(--motion-enter) var(--motion-ease) both; }
+.reveal, .inspector-inner, .status-content, .room-chip { animation: settle var(--motion-change) var(--motion-ease) both; }
+.viewer-canvas { animation: model-in var(--motion-enter) var(--motion-ease) both; }
+.immersive .viewer-canvas { animation-duration: var(--motion-change); }
+.opening.active .leader, .measure-line { stroke-dasharray: 1; animation: draw-line var(--motion-change) var(--motion-ease) both; }
+.status-content.analyzing .status-icon { animation: drafting-pulse 1100ms ease-in-out 3; }
+@keyframes draw-line { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes studio-enter { from { opacity: .35; clip-path: inset(0 0 0 6%); } to { opacity: 1; clip-path: inset(0); } }
+@keyframes settle { from { opacity: .5; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes model-in { from { opacity: .2; } to { opacity: 1; } }
+@keyframes drafting-pulse { 50% { opacity: .48; transform: scale(.96); } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+}

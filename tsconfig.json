@@ -1,32 +1,9 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "lib": [
-      "ES2022",
-      "DOM"
-    ],
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "jsx": "react-jsx",
-    "allowImportingTsExtensions": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "types": [
-      "node",
-      "vite/client"
-    ],
-    "resolveJsonModule": true
+    "target": "ES2022", "module": "ESNext", "moduleResolution": "Bundler",
+    "strict": true, "skipLibCheck": true, "jsx": "react-jsx",
+    "experimentalDecorators": true, "esModuleInterop": true, "types": ["node", "vite/client"]
   },
-  "include": [
-    "frontend/src",
-    "server",
-    "shared",
-    "vite.config.ts",
-    "geometry",
-    "assets",
-    "tests",
-    "scripts"
-  ]
+  "include": ["apps/**/*.ts", "apps/**/*.tsx", "packages/**/*.ts"],
+  "exclude": ["**/dist"]
 }
