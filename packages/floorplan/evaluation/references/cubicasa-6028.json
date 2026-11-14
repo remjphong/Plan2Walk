@@ -1,0 +1,15 @@
+{
+  "source": "CubiCasa5K 6028, local cubicasa-6028.png, full image. Selected points manually read from this export, without using the original SVG labels.",
+  "width": 504,
+  "height": 437,
+  "tolerancePx": 8,
+  "probes": [
+    { "label": "Kitchen floor", "kind": "floor", "at": [77, 87] },
+    { "label": "Living area floor", "kind": "floor", "at": [215, 210] },
+    { "label": "Outside the setback", "kind": "empty", "at": [223, 62] },
+    { "label": "Open connection between kitchen and living room", "kind": "no-wall", "at": [151, 190] },
+    { "label": "Partition right of living room", "kind": "wall", "at": [306, 214] },
+    { "label": "Bathroom entrance", "kind": "door", "at": [240, 335], "axis": "horizontal" }
+  ],
+  "scale": null
+}

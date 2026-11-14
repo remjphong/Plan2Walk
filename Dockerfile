@@ -17,7 +17,7 @@ RUN npm prune --omit=dev --no-audit --no-fund
 FROM nginx:1.28-alpine AS frontend
 COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=web-build /app/apps/web/dist /usr/share/nginx/html
-EXPOSE 8080
+EXPOSE 80
 
 FROM node:22-bookworm-slim AS backend
 ENV NODE_ENV=production PORT=8080

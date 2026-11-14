@@ -6,8 +6,8 @@ import { visionConfig } from './vision/provider';
 class HealthController {
   @Get()
   status() {
-    const { provider, configured } = visionConfig();
-    return { status: 'ok', provider, aiConfigured: configured };
+    const { provider, model, configured } = visionConfig();
+    return { status: 'ok', provider, model, aiConfigured: configured };
   }
 }
 

@@ -28,12 +28,12 @@ export function Viewer({ plan, walking, start, top, zoom, selected, onSelect, on
     const scene = new T.Scene();
     if (walking) scene.background = new T.Color('#e1effa');
     scene.add(model.group);
-    const sky = new T.HemisphereLight('#f2f8ff', '#cebaa3', 2.35);
-    const sun = new T.DirectionalLight('#fff4e3', 2.25);
-    sun.position.set(-3, 16, -4);
+    const sky = new T.HemisphereLight('#f2f7ff', '#c6b29e', 1.95);
+    const sun = new T.DirectionalLight('#fff3e1', 2.45);
+    sun.position.set(-5, 11, 6).normalize().multiplyScalar(Math.max(12, model.size * 1.15));
     sun.castShadow = true;
     const shadowSize = model.size * .9;
-    Object.assign(sun.shadow.camera, { left: -shadowSize, right: shadowSize, top: shadowSize, bottom: -shadowSize, far: 45 });
+    Object.assign(sun.shadow.camera, { left: -shadowSize, right: shadowSize, top: shadowSize, bottom: -shadowSize, far: Math.max(45, model.size * 3) });
     sun.shadow.mapSize.set(2048, 2048);
     sun.shadow.radius = 2.5;
     sun.shadow.bias = -.0006;
@@ -48,7 +48,7 @@ export function Viewer({ plan, walking, start, top, zoom, selected, onSelect, on
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = T.PCFShadowMap;
     renderer.toneMapping = T.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
+    renderer.toneMappingExposure = 1.08;
     renderer.domElement.setAttribute('aria-label', walking ? 'Góc nhìn đi bộ 3D' : 'Mô hình mặt bằng 3D');
     container.prepend(renderer.domElement);
 

@@ -11,7 +11,14 @@ docker compose up -d --build --wait --remove-orphans
 docker compose ps
 ```
 
-Mở [Plan2Walk](http://127.0.0.1:8102). Service `frontend` phục vụ React và chuyển `/api` đến service `backend` (NestJS) qua mạng nội bộ. Có thể đặt `PLAN2WALK_PORT` để đổi cổng trên máy. Để xem log, chạy `docker compose logs -f frontend backend`. Để dừng, chạy `docker compose down`.
+Mở [Plan2Walk](http://127.0.0.1:3022). Compose gom hai service dưới project `plan2walk`.
+
+| Service | Container | Cổng host → container | Vai trò |
+| --- | --- | --- | --- |
+| `web` | `plan2walk_frontend` | `3022 → 80` | Nginx phục vụ React và chuyển `/api/` đến `api:8080` qua mạng Compose |
+| `api` | `plan2walk_backend` | `8080` nội bộ | NestJS xử lý yêu cầu và gọi AI |
+
+Hai cổng host chỉ bind vào `127.0.0.1`, theo quy ước `3000 + 22` và `8000 + 22`. Đặt `PLAN2WALK_WEB_PORT` hoặc `PLAN2WALK_API_PORT` để đổi cổng. `PLAN2WALK_PORT` vẫn dùng được làm biến cũ cho cổng web. Xem log bằng `docker compose logs -f web api` và dừng bằng `docker compose down`.
 
 Bản nháp hiện lưu trong phiên trình duyệt. PostgreSQL sẽ cần khi có luồng lưu và mở lại dự án. Gemini và DeepSeek là API bên ngoài do backend gọi.
 
@@ -32,7 +39,7 @@ Frontend dùng cổng `3022`, API dùng `8022`. Hãy tải tệp bản vẽ đ�
 
 - Gemini mặc định dùng `VISION_PROVIDER=gemini`, `GEMINI_MODEL` và `GEMINI_API_KEY`. Vertex AI dùng `GEMINI_MODEL`, `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION` và xác thực của môi trường.
 - DeepSeek dùng `VISION_PROVIDER=deepseek` và `DEEPSEEK_API_KEY`. `DEEPSEEK_MODEL` mặc định là `deepseek-flash`.
-- Kiểm tra `provider` và `aiConfigured` tại [endpoint health](http://127.0.0.1:8102/api/health). Compose kiểm tra web/API đã khởi động, còn `aiConfigured` cho biết đã có cấu hình cần thiết để gọi AI. Bản tải lên và bản nháp hiện chỉ giữ trong phiên làm việc của trình duyệt.
+- Kiểm tra `provider`, `model` và `aiConfigured` tại [endpoint health qua web](http://127.0.0.1:3022/api/health). Compose kiểm tra web/API đã khởi động, còn `aiConfigured` cho biết đã có cấu hình cần thiết để gọi AI. Bản tải lên và bản nháp hiện chỉ giữ trong phiên làm việc của trình duyệt.
 
 ## Tài liệu thiết kế
 

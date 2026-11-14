@@ -10,6 +10,12 @@ type Props = {
   mini?: boolean; visible?: boolean; zoom?: number;
 };
 
+const featureNames = {
+  stair: 'Cầu thang', sofa: 'Sofa', bed: 'Giường', table: 'Bàn',
+  kitchen_counter: 'Quầy bếp', sink: 'Chậu rửa', toilet: 'Bồn cầu',
+  unclassified: 'Vật thể chưa phân loại',
+};
+
 export function PlanOverlay({ image, plan, selected, pending, mode = 'select', marks = [], start, position, onSelect, onPoint, onWidth, mini, visible = true, zoom = 1 }: Props) {
   const w = plan?.width ?? image.width, h = plan?.height ?? image.height;
   const vector = Math.max(w, h) / 760;
@@ -33,6 +39,26 @@ export function PlanOverlay({ image, plan, selected, pending, mode = 'select', m
       onPointerDown={event => { if (mode !== 'select' && event.button === 0) onPoint?.(pointer(event)); }}>
       {visible && mode === 'select' && !mini && plan?.walls.map(wall =>
         <line key={wall.id} x1={wall.a[0]} y1={wall.a[1]} x2={wall.b[0]} y2={wall.b[1]} className="detected-wall" strokeWidth={2 * vector} />)}
+      {visible && mode === 'select' && !mini && plan?.features?.map(({ id, type, label, bounds: [x, y, right, bottom] }) => {
+        const name = type === 'unclassified' && label ? featureNames[type] + ' · ' + label : label || featureNames[type];
+        return <g key={id} role="img" aria-label={name + ' · vùng nhận diện'} className={'detected-feature ' + type}>
+          <title>{name + ' · vùng nhận diện'}</title>
+          <rect x={x} y={y} width={right - x} height={bottom - y} rx={3 * vector} strokeWidth={1.5 * vector} />
+          {(type === 'stair' || type === 'unclassified') && <text x={x + 3 * vector} y={y - 3 * vector} fontSize={13 * vector}>{featureNames[type]}</text>}
+        </g>;
+      })}
+      {visible && mode === 'select' && !mini && plan?.openings.filter(item => item.type === 'window').map(window => {
+        const wall = plan.walls.find(item => item.id === window.wallId);
+        if (!wall) return null;
+        const length = distance(wall.a, wall.b);
+        if (!length) return null;
+        const halfSpan = window.width / length / 2;
+        const [x1, y1] = interpolate(wall.a, wall.b, window.offset - halfSpan);
+        const [x2, y2] = interpolate(wall.a, wall.b, window.offset + halfSpan);
+        return <line key={window.id} className="detected-window" x1={x1} y1={y1} x2={x2} y2={y2} strokeWidth={3 * vector}>
+          <title>{'Cửa sổ ' + window.id}</title>
+        </line>;
+      })}
       {visible && mode === 'select' && plan && [...plan.openings.filter(item => item.type === 'door'),
         ...(!mini && pending && !pending.id ? [pending] : [])].map(opening => {
         const door = active?.id === opening.id ? active : opening;

@@ -1,24 +1,26 @@
 name: plan2walk
 
 services:
-  frontend:
+  web:
+    container_name: plan2walk_frontend
     build:
       context: .
       target: frontend
     ports:
-      - "127.0.0.1:${PLAN2WALK_PORT:-8102}:8080"
+      - "127.0.0.1:3022:80"
     depends_on:
-      backend:
+      api:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
       interval: 10s
       timeout: 3s
       start_period: 15s
       retries: 3
 
-  backend:
+  api:
+    container_name: plan2walk_backend
     build:
       context: .
       target: backend

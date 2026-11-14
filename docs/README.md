@@ -13,6 +13,7 @@
 | 09 | [Mockup giao diện desktop](09-ui-mockups.md) | Xem từng màn và tra phần cố định, trạng thái, dữ liệu bản vẽ |
 | 10 | [Rà mockup và kế hoạch chuyển động](10-ui-review-and-motion-plan.md) | Xem ảnh nào cần sửa, cách duyệt theo vùng và thứ tự triển khai |
 | 11 | [Mốc hoàn thành Plan2Walk V1](11-v1-completion.md) | Tra nghiệp vụ, màn hình, chất lượng hình học và 3D cần đạt để gọi là 100% V1 |
+| 12 | [Kế hoạch nâng độ khớp và phần nhìn 3D](12-geometry-visual-plan.md) | Chốt cách đọc mặt bằng, chọn tài nguyên 3D và nghiệm thu qua Docker Compose cổng 3022 |
 
 **Đường đọc theo việc cần làm**
 
@@ -21,5 +22,6 @@
 - Chuẩn bị demo và môi trường chạy → [06](06-verification-and-demo.md) → [07](07-deployment.md) → [08](08-implementation-plan.md).
 - Duyệt hướng giao diện → [09](09-ui-mockups.md) → [10](10-ui-review-and-motion-plan.md).
 - Đối chiếu hiện trạng với mốc 100% V1 → [11](11-v1-completion.md).
+- Sửa độ khớp 2D–3D và nâng phần nhìn trên bản đang chạy → [12](12-geometry-visual-plan.md).
 
 [Về README dự án](../README.md)

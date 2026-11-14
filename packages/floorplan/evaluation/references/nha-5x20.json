@@ -1,0 +1,17 @@
+{
+  "source": "User-supplied mau-nha-1-tret-1-lau-5x20-mai-thai-5.jpg, full image. Source SHA-256 prefix 5781ea1ca677. Coordinates manually inspected on the original.",
+  "width": 700,
+  "height": 407,
+  "tolerancePx": 8,
+  "probes": [
+    { "label": "Living area floor", "kind": "floor", "at": [252, 211] },
+    { "label": "Kitchen floor near stair", "kind": "floor", "at": [480, 232] },
+    { "label": "Bedroom floor", "kind": "floor", "at": [625, 211] },
+    { "label": "Outside above the upper wall", "kind": "empty", "at": [473, 94] },
+    { "label": "Open connection from living space toward the kitchen", "kind": "no-wall", "at": [327, 223] },
+    { "label": "Horizontal partition below the WC", "kind": "wall", "at": [550, 153] },
+    { "label": "Vertical bedroom partition", "kind": "wall", "at": [523, 216] },
+    { "label": "Bedroom entrance", "kind": "door", "at": [523, 171], "axis": "vertical" },
+    { "label": "Visible portion of the stair flight", "kind": "stair", "at": [425, 231] }
+  ]
+}

@@ -90,6 +90,26 @@ export function buildGeometry(plan: Plan) {
   const pieces: WallPiece[] = [];
   const links: { wall: Wall; start: number; end: number }[] = [];
   const issues = [...plan.issues];
+  const features = (plan.features ?? []).filter(feature => {
+    const [x, y, right, bottom] = feature.bounds;
+    if (feature.type === 'stair') issues.push({ code: 'UNVERIFIED_STAIR_PROFILE',
+      message: 'Cầu thang chỉ có mặt bằng nhận diện. Cần hướng lên, số bậc và cao độ để dựng bậc.', entityId: feature.id });
+    if (feature.type === 'unclassified') return false;
+    const onSurface = ([px, py]: Point) =>
+      plan.rooms.some(room => inRoom([px, py], room.polygon)) ||
+      plan.rooms.some(room => inRoom([px + 1.5, py + 1.5], room.polygon)) ||
+      plan.rooms.some(room => inRoom([px - 1.5, py - 1.5], room.polygon));
+    let hits = 0;
+    if (right > x && bottom > y) {
+      for (const u of [0.2, 0.5, 0.8]) for (const v of [0.2, 0.5, 0.8]) {
+        if (onSurface([x + (right - x) * u, y + (bottom - y) * v])) hits++;
+      }
+    }
+    const inside = hits >= 5;
+    if (!inside) issues.push({ code: 'FEATURE_OUTSIDE_FLOOR',
+      message: 'Vùng vật thể chưa nằm trọn trên sàn nhận diện. Kiểm tra vị trí trên nguồn.', entityId: feature.id });
+    return inside;
+  });
   for (const wall of plan.walls) {
     const length = distance(wall.a, wall.b);
     if (!length) continue;
@@ -110,7 +130,7 @@ export function buildGeometry(plan: Plan) {
         const normal: Point = [(wall.a[1] - wall.b[1]) * delta / length, (wall.b[0] - wall.a[0]) * delta / length];
         const left = plan.rooms.find(room => inRoom([center[0] + normal[0], center[1] + normal[1]], room.polygon));
         const right = plan.rooms.find(room => inRoom([center[0] - normal[0], center[1] - normal[1]], room.polygon));
-        if (left && right && left.id !== right.id) links.push({ wall, start, end });
+        if (left && right) links.push({ wall, start, end });
       }
       cursor = end;
     }
@@ -121,12 +141,17 @@ export function buildGeometry(plan: Plan) {
     if (error) issues.push({ code: 'INVALID_OPENING', message: error, entityId: opening.id });
   }
   function walkable(p: Point) {
-    const onFloor = plan.rooms.some(room => inRoom(p, room.polygon));
+    const onFloor = plan.rooms.some(room => inRoom(p, room.polygon)) || (
+      plan.rooms.some(room => inRoom([p[0] + .5, p[1] + .5], room.polygon))
+      && plan.rooms.some(room => inRoom([p[0] - .5, p[1] - .5], room.polygon))
+    );
     const inThreshold = links.some(({ wall, start, end }) => {
       const { along, across } = project(p, wall);
       return along >= start + radius && along <= end - radius && across <= wall.thickness / 2 + 2;
     });
     if (!onFloor && !inThreshold) return false;
+    if (features.some(({ bounds: [x, y, right, bottom] }) =>
+      Math.hypot(Math.max(x - p[0], p[0] - right, 0), Math.max(y - p[1], p[1] - bottom, 0)) < radius)) return false;
     return !pieces.some(({ wall, start, end, bottom }) => {
       if (bottom >= 1.8) return false;
       const { along, across } = project(p, wall);
@@ -135,5 +160,5 @@ export function buildGeometry(plan: Plan) {
       return Math.hypot(pastEnd, pastFace) < radius;
     });
   }
-  return { unit, pieces, issues, walkable };
+  return { unit, pieces, features, issues, walkable };
 }

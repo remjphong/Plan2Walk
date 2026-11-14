@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Component, lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AlertCircle, ArrowLeft, ArrowRight, Box, ChevronLeft, ChevronRight, Crosshair, DoorOpen, FileText, Footprints, Keyboard, Layers3, MousePointer2, Move, PanelLeft, Ruler, Scan, TriangleAlert } from 'lucide-react';
 import { buildGeometry, calibrate, createOpening, removeOpening, updateOpening, type Opening, type Plan, type Point } from '@plan2walk/floorplan';
 import { analyzePreview, AnalysisError } from '../../api/plans';
@@ -10,6 +10,24 @@ import { OpenScreen, SourceScreen, ZoomControls } from './SourceScreen';
 import { cropPreview, fullRegion, openSource, type PagePreview, type Region, type Source } from './source';
 
 const Viewer = lazy(() => import('../walkthrough/Viewer').then(module => ({ default: module.Viewer })));
+
+class ViewerBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  render() {
+    if (!this.state.failed) return this.props.children;
+    return <div className="viewer-unavailable">
+      <p role="alert">Không thể tải mô hình 3D. Bạn vẫn có thể đối chiếu bản 2D.</p>
+      <button className="outline" onClick={() => window.location.reload()}>Tải lại trang</button>
+      <p>Bạn sẽ cần mở lại bản vẽ sau khi tải lại.</p>
+    </div>;
+  }
+}
+
 type Screen = 'open' | 'source' | 'processing' | 'error' | 'region' | 'review' | 'walk-ready' | 'walk';
 type Draft = { plan: Plan; image: PagePreview };
 const shortcutItems = [
@@ -138,7 +156,7 @@ export function Workspace() {
       if (request !== sequence.current) return;
       const image = { ...cropped, text: [] };
       setPreview(image);
-      const next = await analyzePreview(cropped.blob, cropped.text, controller.signal);
+      const next = await analyzePreview(cropped.blob, cropped.text, controller.signal, cropped.drawing);
       if (request === sequence.current) showDraft(next, image);
     } catch (caught) {
       if (request !== sequence.current) return;
@@ -215,7 +233,8 @@ export function Workspace() {
   const statusScreen = busy || screen === 'error' || screen === 'region';
   const title = screen === 'source' ? 'Chọn trang và vùng' : screen === 'review' ? 'Đối chiếu mặt bằng' :
     screen.startsWith('walk') ? 'Đi thử mặt bằng' : busy ? 'Đang phân tích' : 'Phân tích bản vẽ';
-  const scaleText = verified ? 'Đã xác nhận tỉ lệ · Chiều cao minh họa' : 'Tỉ lệ chưa xác nhận';
+  const scaleText = verified ? 'Tỉ lệ theo mốc A–B · Chiều cao minh họa' : 'Bố cục tương đối · Chưa hiệu chuẩn';
+  const incompleteFloor = geometry?.issues.some(issue => issue.code === 'INCOMPLETE_FLOOR_EVIDENCE');
   const doorIssues = geometry?.issues.filter(issue => issue.code === 'REVIEW_OPENING' &&
     plan?.openings.some(opening => opening.id === issue.entityId && opening.type === 'door')).length ?? 0;
   const issueCount = geometry?.issues.length ?? 0;
@@ -327,10 +346,12 @@ export function Workspace() {
           <div className="pane result">
             {screen !== 'walk' && <h2>Mô hình · 3D</h2>}
               <div className={'model-stage drafting-grid' + (screen === 'walk' ? ' immersive' : '')}>
-                <Suspense fallback={<p className="viewer-unavailable" role="status">Đang mở mô hình 3D…</p>}>
-                  <Viewer plan={plan} walking={screen === 'walk'} start={screen === 'walk' ? start : null} top={top} zoom={zoom}
-                    selected={selected} onSelect={selectDoor} onPosition={setPosition} onExit={returnOverview} />
-                </Suspense>
+                <ViewerBoundary>
+                  <Suspense fallback={<p className="viewer-unavailable" role="status">Đang mở mô hình 3D…</p>}>
+                    <Viewer plan={plan} walking={screen === 'walk'} start={screen === 'walk' ? start : null} top={top} zoom={zoom}
+                      selected={selected} onSelect={selectDoor} onPosition={setPosition} onExit={returnOverview} />
+                  </Suspense>
+                </ViewerBoundary>
                 {screen !== 'walk' && <>
                   <div className="model-tools">
                     <button className="square" aria-pressed={top} title="Nhìn từ trên" aria-label="Nhìn từ trên" onClick={() => setTop(!top)}><Box /></button>
@@ -352,6 +373,7 @@ export function Workspace() {
           {screen !== 'walk' && <aside className="inspector">
                 {screen === 'walk-ready' ? <div className="inspector-inner">
                   <h2>Chọn điểm đứng</h2><p className="field-help">Bấm một điểm trong phòng ở bản gốc. Dùng WASD để đi và kéo chuột để nhìn quanh.</p>
+                  {incompleteFloor && <p className="field-help"><TriangleAlert aria-hidden="true" size={15} /> Một số vùng sàn còn thiếu nét đối chiếu. Lượt đi này dùng bản nháp.</p>}
                   {startError && <p className="inline-error" role="alert">{startError}</p>}
                   <button className="primary full" onClick={() => { if (start) setScreen('walk'); }} disabled={!start}>Bắt đầu đi</button>
                   <button className="outline full" onClick={() => setStart(defaultStart(plan, geometry))}>Đặt lại vị trí</button>
@@ -374,7 +396,7 @@ export function Workspace() {
           <footer className="workspace-status">
             <span className="torn-paper" aria-hidden="true" />
             <div className="scale-status">
-              <span>{!verified && <TriangleAlert aria-hidden="true" />}{scaleText}{screen === 'walk' && !verified ? ' · Đi thử minh họa' : ''}</span>
+              <span>{(!verified || incompleteFloor) && <TriangleAlert aria-hidden="true" />}{scaleText}{incompleteFloor ? ' · Sàn cần đối chiếu' : ''}</span>
               {screen === 'review' && !measure && <button className="primary scale-button" onClick={beginMeasure}>{verified ? 'Đo lại tỉ lệ' : 'Xác nhận tỉ lệ'}</button>}
             </div>
             <DraftingStrip />

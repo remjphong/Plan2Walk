@@ -9,7 +9,7 @@ export function OpenScreen({ onFile, onBrowse, error, loading }: {
   const [dragging, setDragging] = useState(false);
   return <main className="work-area">
     <div className="taskbar"><div className="task-copy">
-      <h1>Mở bản vẽ</h1><p className="intro">Chọn mặt bằng kiến trúc để dựng 3D.</p>
+      <h1>Mở bản vẽ</h1><p className="intro">Chọn mặt bằng kiến trúc hoặc bố trí nội thất nhà ở. Dựng 3D từng tầng.</p>
     </div><DraftingStrip detail /></div>
     <section className="open-screen workspace-panel reveal">
     <div className="open-content">

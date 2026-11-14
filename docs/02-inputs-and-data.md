@@ -33,3 +33,15 @@ Các tài liệu trên dùng để tham chiếu dạng đầu vào. Fixture đư
 Mỗi fixture cần biết nguồn, quyền dùng, nhóm đầu vào, vùng phân tích, tường/cửa/phòng đã đối chiếu, tỉ lệ nếu biết, và kết quả mong đợi. Chia theo **họ bản vẽ** để bản xuất từ cùng một template không xuất hiện ở cả tập chỉnh pipeline và tập đánh giá. Mẫu không có đáp án có thể dùng để khảo sát lỗi. Số liệu công bố lấy từ mẫu đã được kiểm nhãn.
 
 Để đánh giá đầu vào kỹ thuật dùng thực tế tại Việt Nam, bổ sung PDF và scan từ các đơn vị đồng ý cung cấp bản vẽ. [Tiêu chí kiểm thử](06-verification-and-demo.md)
+
+## 2.4. Chấm kết quả phân tích đã lưu
+
+Lưu `plan` hoặc toàn bộ JSON trả từ `POST /api/plans/analyze`. Tạo tệp tham chiếu bằng cách đánh dấu điểm trên đúng ảnh và vùng crop đã gửi. Ví dụ sẵn có là [CubiCasa5K 6028](../packages/floorplan/evaluation/references/cubicasa-6028.json). Các điểm trong ví dụ được đọc thủ công trên ảnh 504 × 437 px.
+
+```sh
+npx tsx packages/floorplan/evaluation/check.ts prediction.json packages/floorplan/evaluation/references/cubicasa-6028.json
+```
+
+`floor` và `empty` kiểm điểm trong và ngoài vùng sàn. `wall` và `no-wall` kiểm có hay thiếu nét tường tại điểm đã chọn. `door` và `window` kiểm vị trí tâm và hướng nếu có. `tolerancePx` áp dụng cho tường và cửa. Trường `scale` nhận hai mốc, số mét và sai số cho phép, hoặc `null` khi nguồn chưa đủ căn cứ về tỉ lệ. Bỏ trường đó nếu mẫu chưa đánh giá tỉ lệ. `stair` kiểm vùng cầu thang 2D có chứa điểm tham chiếu. `stair-3d` đánh dấu kiểm tra cao độ và bậc là `unsupported` với schema hiện tại. Mã thoát `0` là tất cả điểm đạt, `1` là có điểm trượt hoặc chưa hỗ trợ, `2` là dữ liệu đầu vào không hợp lệ.
+
+Bộ chấm chỉ kiểm các điểm có nhãn. Muốn đánh giá toàn bộ vùng phòng hoặc tỷ lệ bỏ sót cửa cần đối chiếu nhãn đầy đủ.

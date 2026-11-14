@@ -161,6 +161,12 @@ h1, h2, h3, p { margin: 0; }
 .plan-overlay { overflow: visible; }
 .plan-overlay.measure, .plan-overlay.start { cursor: crosshair; }
 .detected-wall { stroke: #2556cf80; stroke-dasharray: 6 5; pointer-events: none; }
+.detected-feature rect { fill: #0b76601a; stroke: #0b7660; }
+.detected-feature.stair rect { fill: #a660101a; stroke: #a66010; }
+.detected-feature.unclassified rect { fill: #68517916; stroke: #685179; stroke-dasharray: 5 4; }
+.detected-feature text { fill: #874906; paint-order: stroke; stroke: #fff; stroke-width: 3px; font-weight: 650; }
+.detected-feature.unclassified text { fill: #685179; }
+.detected-window { stroke: #087b94; }
 .opening { cursor: pointer; }
 .door-target { stroke: transparent; }
 .door-gap { stroke: #a14327; opacity: .7; }

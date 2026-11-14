@@ -1,7 +1,10 @@
 import type { Point } from '@plan2walk/floorplan';
 
 export type Region = { x: number; y: number; width: number; height: number };
-export type PagePreview = { url: string; width: number; height: number; text: { value: string; point: Point }[] };
+export type PagePreview = {
+  url: string; width: number; height: number; text: { value: string; point: Point }[];
+  drawingLayer?: () => Promise<HTMLCanvasElement | undefined>;
+};
 export type Source = { name: string; pages: number; page(index: number): Promise<PagePreview>; close(): void };
 export const fullRegion: Region = { x: 0, y: 0, width: 1, height: 1 };
 
@@ -16,7 +19,7 @@ export async function openSource(file: File): Promise<Source> {
   const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
   const pdf = new TextDecoder().decode(bytes.slice(0, 5)) === '%PDF-';
   if (pdf) {
-    const [{ getDocument, GlobalWorkerOptions }, { default: worker }] = await Promise.all([
+    const [{ getDocument, GlobalWorkerOptions, OPS }, { default: worker }] = await Promise.all([
       import('pdfjs-dist'), import('pdfjs-dist/build/pdf.worker.min.mjs?url'),
     ]);
     GlobalWorkerOptions.workerSrc = worker;
@@ -38,7 +41,20 @@ export async function openSource(file: File): Promise<Source> {
           const text = content.items.flatMap(item => 'str' in item ? [{
             value: item.str, point: viewport.convertToViewportPoint(item.transform[4], item.transform[5]) as Point,
           }] : []);
-          return { url: canvas.toDataURL('image/png'), width: canvas.width, height: canvas.height, text };
+          async function drawingLayer() {
+            const { fnArray } = await page.getOperatorList();
+            if (!fnArray.includes(OPS.constructPath)) return;
+            const layer = window.document.createElement('canvas');
+            layer.width = canvas.width;
+            layer.height = canvas.height;
+            const hidden = new Set([OPS.showText, OPS.showSpacedText, OPS.nextLineShowText,
+              OPS.nextLineSetSpacingShowText, OPS.paintImageXObject, OPS.paintInlineImageXObject,
+              OPS.paintInlineImageXObjectGroup, OPS.paintImageXObjectRepeat, OPS.paintImageMaskXObject,
+              OPS.paintImageMaskXObjectGroup, OPS.paintImageMaskXObjectRepeat, OPS.paintSolidColorImageMask]);
+            await page.render({ canvas: layer, viewport, operationsFilter: index => !hidden.has(fnArray[index]) }).promise;
+            return layer;
+          }
+          return { url: canvas.toDataURL('image/png'), width: canvas.width, height: canvas.height, text, drawingLayer };
         },
       };
     } catch (error) {
@@ -76,7 +92,21 @@ export async function cropPreview(page: PagePreview, region: Region) {
   ctx.drawImage(await decode(page.url), x, y, width, height, 0, 0, canvas.width, canvas.height);
   const text = page.text.filter(({ point: [px, py] }) => px >= x && px <= x + width && py >= y && py <= y + height)
     .map(item => item.value).join('\n').slice(0, 8000);
-  const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(result =>
+  const encode = (target: HTMLCanvasElement) => new Promise<Blob>((resolve, reject) => target.toBlob(result =>
     result ? resolve(result) : reject(new Error('Không tạo được ảnh từ vùng đã chọn.')), 'image/png'));
-  return { blob, text, url: canvas.toDataURL('image/png'), width: canvas.width, height: canvas.height };
+  const blob = await encode(canvas);
+  const layer = await page.drawingLayer?.().catch(() => undefined);
+  let drawing: Blob | undefined;
+  if (layer) {
+    const crop = document.createElement('canvas');
+    crop.width = canvas.width;
+    crop.height = canvas.height;
+    const evidence = crop.getContext('2d')!;
+    evidence.fillStyle = '#fff';
+    evidence.fillRect(0, 0, crop.width, crop.height);
+    evidence.drawImage(layer, x, y, width, height, 0, 0, crop.width, crop.height);
+    const encoded = await encode(crop);
+    if (encoded.size <= 12 * 1024 * 1024 - blob.size) drawing = encoded;
+  }
+  return { blob, drawing, text, url: canvas.toDataURL('image/png'), width: canvas.width, height: canvas.height };
 }
