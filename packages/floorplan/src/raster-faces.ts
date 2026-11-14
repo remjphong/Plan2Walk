@@ -140,131 +140,85 @@ export function compileFloorZones(
     }
   });
 
-  const floors: { name: string; polygon: Point[] }[] = [];
+  const floors: { name: string; polygon: Point[]; estimated?: boolean; zoneId?: string }[] = [];
 
   validFaces.forEach(({ polygon }, fIdx) => {
     const assigned = faceZones[fIdx];
     if (assigned.length <= 1) {
-      floors.push({ polygon, name: assigned[0]?.name ?? '' });
+      floors.push({ polygon, name: assigned[0]?.name ?? '', zoneId: assigned[0] ? 'Z' + assigned[0].index : 'face-' + fIdx });
       return;
     }
-    // Open-plan face shared by multiple functional zones: split cleanly along dominant spread axis
-    const xs = assigned.map(z => z.cx), ys = assigned.map(z => z.cy);
-    const splitAxis: 0 | 1 = (Math.max(...xs) - Math.min(...xs)) >= (Math.max(...ys) - Math.min(...ys)) ? 0 : 1;
-    const sorted = [...assigned].sort((a, b) => (splitAxis === 0 ? a.cx - b.cx : a.cy - b.cy));
-    // Collapse duplicate/overlapping zone labels within 10px along split axis
-    const distinct: typeof sorted = [];
-    for (const z of sorted) {
-      const prev = distinct.at(-1);
-      const center = splitAxis === 0 ? z.cx : z.cy;
-      const prevCenter = prev ? (splitAxis === 0 ? prev.cx : prev.cy) : -Infinity;
-      if (prev && Math.abs(center - prevCenter) < tolerance * 1.2) {
-        if (z.name.length > prev.name.length) distinct[distinct.length - 1] = z;
-      } else {
-        distinct.push(z);
-      }
-    }
-    if (distinct.length <= 1) {
-      floors.push({ polygon, name: distinct[0]?.name ?? '' });
-      return;
-    }
-    const [fMinX, fMinY, fMaxX, fMaxY] = polygonBounds(polygon);
-    const fMin = splitAxis === 0 ? fMinX : fMinY;
-    const fMax = splitAxis === 0 ? fMaxX : fMaxY;
-    const cuts: number[] = [fMin];
-    for (let i = 0; i < distinct.length - 1; i++) {
-      const a = distinct[i], b = distinct[i + 1];
-      const ca = splitAxis === 0 ? a.cx : a.cy;
-      const cb = splitAxis === 0 ? b.cx : b.cy;
-      const rawCut = (a.bounds[splitAxis + 2] + b.bounds[splitAxis]) / 2;
-      const prevCut = cuts.at(-1)!;
-      const cut = Math.max(Math.max(prevCut + 4, ca + 2), Math.min(cb - 2, rawCut));
-      cuts.push(cut);
-    }
-    cuts.push(fMax);
-
-    for (let i = 0; i < distinct.length; i++) {
-      let piece = clipHalfPlane(polygon, splitAxis, cuts[i], true);
-      piece = clipHalfPlane(piece, splitAxis, cuts[i + 1], false);
-      if (piece.length >= 3 && polygonArea(piece) >= minArea * 0.25) {
-        floors.push({ polygon: piece, name: distinct[i].name });
-      }
+    // Partition on both axes. Small contained zones take precedence over broad
+    // room boxes, so a courtyard does not become a strip across the whole house.
+    const [left, top, right, bottom] = polygonBounds(polygon);
+    const xs = [...new Set([left, right, ...assigned.flatMap(z => [z.bounds[0], z.bounds[2]])
+      .filter(x => x > left && x < right)])].sort((a,b) => a-b);
+    const ys = [...new Set([top, bottom, ...assigned.flatMap(z => [z.bounds[1], z.bounds[3]])
+      .filter(y => y > top && y < bottom)])].sort((a,b) => a-b);
+    for (let y = 1; y < ys.length; y++) for (let x = 1; x < xs.length; x++) {
+      const cx = (xs[x-1] + xs[x]) / 2, cy = (ys[y-1] + ys[y]) / 2;
+      if (!inRoom([cx,cy], polygon)) continue;
+      const containing = assigned.filter(z => cx >= z.bounds[0] && cx <= z.bounds[2] && cy >= z.bounds[1] && cy <= z.bounds[3]);
+      const zone = containing.sort((a,b) =>
+        (a.bounds[2]-a.bounds[0])*(a.bounds[3]-a.bounds[1]) - (b.bounds[2]-b.bounds[0])*(b.bounds[3]-b.bounds[1]))[0];
+      let piece = clipHalfPlane(polygon, 0, xs[x-1], true);
+      piece = clipHalfPlane(piece, 0, xs[x], false);
+      piece = clipHalfPlane(piece, 1, ys[y-1], true);
+      piece = clipHalfPlane(piece, 1, ys[y], false);
+      if (piece.length >= 3 && polygonArea(piece) > 1e-6) floors.push({
+        polygon: piece, name: zone?.name ?? '', zoneId: zone ? 'Z' + zone.index : 'face-' + fIdx,
+      });
     }
   });
 
-  // Case C: Semi-open patios / balconies / rear courtyards adjacent to the structural wall network
-  if (validFaces.length) {
-    const faceBoxes = validFaces.map(f => polygonBounds(f.polygon));
-    const houseBounds: [number, number, number, number] = [
-      Math.min(...faceBoxes.map(b => b[0])),
-      Math.min(...faceBoxes.map(b => b[1])),
-      Math.max(...faceBoxes.map(b => b[2])),
-      Math.max(...faceBoxes.map(b => b[3])),
-    ];
-    const patioPattern = /san|ngo|hien|ban cong|lo gia|balcon|terrace|patio|porch|yard|vuon/i;
-    const fold = (s: string) => s.toLowerCase().replace(/đ/g, 'd').normalize('NFD').replace(/\p{M}/gu, '');
-
-    rooms.forEach((room, index) => {
-      if (usedZones.has(index) || !room.name.trim()) return;
-      let [x0, y0, x1, y1] = room.bounds;
-      if ((x1 - x0) * (y1 - y0) < minArea) return;
-      // Must be adjacent/touching the main house footprint or explicitly a patio/exterior area with ink evidence
-      const normalizedName = fold(room.name);
-      const isPatioName = patioPattern.test(normalizedName);
-      const nearHouse = x1 >= houseBounds[0] - tolerance * 4 && x0 <= houseBounds[2] + tolerance * 4 &&
-        y1 >= houseBounds[1] - tolerance * 4 && y0 <= houseBounds[3] + tolerance * 4;
-      if (!nearHouse) return;
-
-      // Snap each edge to nearby network walls or structural strokes
-      const pool = [...network, ...allStrokes];
-      const snapEdge = (axis: 0 | 1, val: number, minSpan: number, maxSpan: number) => {
-        const perp = pool.filter(s => s.axis === axis && Math.abs(s.at - val) <= tolerance * 2.5 &&
-          Math.max(0, Math.min(s.end, maxSpan) - Math.max(s.start, minSpan)) >= (maxSpan - minSpan) * .35)
-          .sort((a, b) => Math.abs(a.at - val) - Math.abs(b.at - val))[0];
-        return perp ? perp.at : val;
-      };
-      x0 = snapEdge(0, x0, y0, y1);
-      x1 = snapEdge(0, x1, y0, y1);
-      y0 = snapEdge(1, y0, x0, x1);
-      y1 = snapEdge(1, y1, x0, x1);
-      // Also align top/bottom flush with main house horizontal corridor when within 2*tolerance
-      if (Math.abs(y0 - houseBounds[1]) <= tolerance * 2) y0 = houseBounds[1];
-      if (Math.abs(y1 - houseBounds[3]) <= tolerance * 2) y1 = houseBounds[3];
-
-      // Trim any overlap with existing interior face boxes along the dominant shared side
-      for (const [fx0, fy0, fx1, fy1] of faceBoxes) {
-        const ox = Math.min(x1, fx1) - Math.max(x0, fx0);
-        const oy = Math.min(y1, fy1) - Math.max(y0, fy0);
-        if (ox <= 1 || oy <= 1) continue;
-        if (ox <= oy) {
-          if (x0 < fx0) x1 = Math.min(x1, fx0);
-          else if (x1 > fx1) x0 = Math.max(x0, fx1);
-        } else {
-          if (y0 < fy0) y1 = Math.min(y1, fy0);
-          else if (y1 > fy1) y0 = Math.max(y0, fy1);
+  // Recover each unresolved zone independently. The estimate requires substantial
+  // boundary evidence and is explicitly marked for review by the caller.
+  for (let index = 0; index < rooms.length; index++) {
+    if (usedZones.has(index)) continue;
+    const room = rooms[index];
+    const bounds = [...room.bounds] as [number, number, number, number];
+    const pool = network;
+    const support = (axis: 0 | 1, at: number, start: number, end: number) => {
+      const intervals = pool.filter(s => s.axis === axis && Math.abs(s.at - at) <= tolerance * 2)
+        .map(s => [Math.max(start, s.start), Math.min(end, s.end)])
+        .filter(([a, b]) => b > a).sort((a, b) => a[0] - b[0]);
+      let covered = 0, cursor = start;
+      for (const [a, b] of intervals) {
+        covered += Math.max(0, b - Math.max(a, cursor));
+        cursor = Math.max(cursor, b);
+      }
+      return covered / Math.max(1, end - start) >= .65;
+    };
+    for (const side of [0, 1, 2, 3]) {
+      const axis = (side % 2) as 0 | 1;
+      const across = 1 - axis;
+      const nearest = pool.filter(s => s.axis === axis && Math.abs(s.at - bounds[side]) <= tolerance * 2 &&
+        Math.min(s.end, bounds[across + 2]) - Math.max(s.start, bounds[across]) > (bounds[across + 2] - bounds[across]) * .5)
+        .sort((a, b) => Math.abs(a.at - bounds[side]) - Math.abs(b.at - bounds[side]))[0];
+      if (nearest) bounds[side] = nearest.at;
+    }
+    const [x0, y0, x1, y1] = bounds;
+    if (x1 - x0 < tolerance * 2 || y1 - y0 < tolerance * 2) continue;
+    const sides = [support(0, x0, y0, y1), support(1, y0, x0, x1),
+      support(0, x1, y0, y1), support(1, y1, x0, x1)];
+    if (sides.filter(Boolean).length < 2) continue;
+    // Subtract existing orthogonal polygons cell by cell, preserving concavities.
+    const vertices = floors.flatMap(f => f.polygon);
+    const xs = [...new Set([x0, x1, ...vertices.map(p => p[0]).filter(x => x > x0 && x < x1)])].sort((a,b) => a-b);
+    const ys = [...new Set([y0, y1, ...vertices.map(p => p[1]).filter(y => y > y0 && y < y1)])].sort((a,b) => a-b);
+    const additions: typeof floors = [];
+    for (let yi = 1; yi < ys.length; yi++) {
+      let run: number | undefined;
+      for (let xi = 1; xi <= xs.length; xi++) {
+        const free = xi < xs.length && !floors.some(f => inRoom([(xs[xi-1]+xs[xi])/2, (ys[yi-1]+ys[yi])/2], f.polygon));
+        if (free && run === undefined) run = xs[xi-1];
+        if (!free && run !== undefined) {
+          additions.push({ name: room.name, zoneId: 'Z' + index, estimated: true, polygon: [[run,ys[yi-1]],[xs[xi-1],ys[yi-1]],[xs[xi-1],ys[yi]],[run,ys[yi]]] });
+          run = undefined;
         }
       }
-      if (x1 - x0 < tolerance * 2 || y1 - y0 < tolerance * 2) return;
-
-      // Require physical ink evidence on at least 2 boundary sides (or patio label + touching house wall)
-      const hasStrokeOn = (axis: 0 | 1, atVal: number, s: number, e: number) =>
-        pool.some(line => line.axis === axis && Math.abs(line.at - atVal) <= tolerance * 1.5 &&
-          Math.max(0, Math.min(line.end, e) - Math.max(line.start, s)) >= (e - s) * .3);
-      const sidesSupported = [
-        hasStrokeOn(0, x0, y0, y1),
-        hasStrokeOn(0, x1, y0, y1),
-        hasStrokeOn(1, y0, x0, x1),
-        hasStrokeOn(1, y1, x0, x1),
-      ].filter(Boolean).length;
-
-      if (sidesSupported >= 2 || (isPatioName && sidesSupported >= 1)) {
-        floors.push({
-          name: room.name,
-          polygon: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]],
-        });
-      }
-    });
+    }
+    floors.push(...additions);
   }
-
   return floors;
 }

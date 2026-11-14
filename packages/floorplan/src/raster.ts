@@ -360,7 +360,7 @@ export function reconcileRasterCandidates(input: Candidates, image: Raster) {
   const minKeepThickness = shortSide < 320 ? 1 : Math.max(2, Math.round(shortSide * .006));
   const strokes: [TaggedSegment[], TaggedSegment[]] = [0, 1].map(axis =>
     combined
-      .filter(s => s.axis === axis && !s.isComb && (s.isDouble || (s.thickness >= minKeepThickness && insideEnvelope(s))))
+      .filter(s => s.axis === axis && !s.isComb && (s.isDouble || s.thickness >= minKeepThickness) && insideEnvelope(s))
       .sort((a, b) => ((b.isDouble ? 2 : 1) * b.thickness * Math.sqrt(length(b))) - ((a.isDouble ? 2 : 1) * a.thickness * Math.sqrt(length(a))))
       .slice(0, 180),
   ) as [TaggedSegment[], TaggedSegment[]];
@@ -461,7 +461,7 @@ export function reconcileRasterCandidates(input: Candidates, image: Raster) {
 
   if (network.length < 2 || !network.some(line => line.axis === 0) || !network.some(line => line.axis === 1)) {
     issues.push({ code: 'NO_RASTER_WALL_EVIDENCE', message: 'Chưa tìm đủ nét tường có thể kiểm tra trên ảnh. Chọn vùng rõ hơn.' });
-    return { candidates: { ...input, rooms: [], walls: [], openings: [], features: [] }, issues };
+    return { candidates: { ...input, rooms: [], walls: [], openings: [], features: [] }, issues, passages: [] };
   }
   if (matchedWallsCount < (input.walls?.length ?? 0)) issues.push({
     code: 'UNVERIFIED_WALLS', message: 'Một số vách đề xuất không có đủ nét trên bản gốc và đã được bỏ khỏi bản nháp.',
@@ -488,8 +488,27 @@ export function reconcileRasterCandidates(input: Candidates, image: Raster) {
     const [a, b, c, d] = room.bounds;
     return { name: room.name, bounds: [...pixels([a, b]), ...pixels([c, d])] as [number, number, number, number] };
   });
-  const faces = boundedFaces(network);
+  // Short collinear gaps may connect floors without establishing a door type.
+  const passages: { a: Point; b: Point; thickness: number }[] = [];
+  const closures: Segment[] = [];
+  for (const before of network) {
+    const after = network.filter(s => s !== before && s.axis === before.axis &&
+      Math.abs(s.at - before.at) <= Math.min(s.thickness, before.thickness) / 2 && s.start > before.end)
+      .sort((a,b) => a.start - b.start)[0];
+    if (!after) continue;
+    const gap = after.start - before.end;
+    if (gap < 2 || gap > shortSide * .16 || gap > Math.min(length(before), length(after)) * 1.5) continue;
+    const at = (before.at + after.at) / 2;
+    const a: Point = before.axis === 0 ? [at, before.end] : [before.end, at];
+    const b: Point = before.axis === 0 ? [at, after.start] : [after.start, at];
+    passages.push({ a, b, thickness: Math.max(before.thickness, after.thickness) });
+    closures.push({ ...before, at, start: before.end, end: after.start });
+  }
+  const faces = boundedFaces([...network, ...closures]);
   const floors = compileFloorZones(faces, zones, network, strokes.flat(), Math.max(60, tolerance * tolerance * 3), tolerance);
+  if (floors.some(floor => floor.estimated)) issues.push({
+    code: 'ESTIMATED_FLOOR', message: 'Một số biên sàn được ước lượng từ vùng công năng và nét biên lân cận. Cần đối chiếu trên bản gốc.',
+  });
   if (!floors.length || zones.some(({ name, bounds: [x, y, right, bottom] }) =>
     name.trim() && !floors.some(({ polygon }) => inRoom([(x + right) / 2, (y + bottom) / 2], polygon)))) issues.push({
     code: 'INCOMPLETE_FLOOR_EVIDENCE',
@@ -528,6 +547,6 @@ export function reconcileRasterCandidates(input: Candidates, image: Raster) {
       openings: openingCandidates,
     },
     issues,
-    floors: floors.length ? floors : undefined,
+    floors, passages,
   };
 }

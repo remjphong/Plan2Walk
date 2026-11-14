@@ -32,10 +32,11 @@ function snapLines(values: number[], tolerance: number) {
 }
 
 export function compileCandidates(input: Pick<Candidates, 'rooms' | 'openings' | 'walls' | 'features'> & {
-  width: number; height: number; rejectedFeatures?: number; floors?: { name: string; polygon: Point[] }[];
+  passages?: Plan['passages']; width: number; height: number; rejectedFeatures?: number; floors?: { name: string; polygon: Point[]; zoneId?: string }[];
 }): Plan {
   const { width, height } = input;
   const plan: Plan = { schemaVersion: 1, revision: 0, width, height, rooms: [], walls: [], openings: [], issues: [], scale: { status: 'unknown' } };
+  plan.passages = input.passages;
   const tolerance = Math.min(width, height) * 0.012;
   const pointFromSource = ([x, y]: Point): Point => [x * width / 1000, y * height / 1000];
   const wallId = () => 'W' + String(plan.walls.length + 1).padStart(2, '0');
@@ -53,7 +54,7 @@ export function compileCandidates(input: Pick<Candidates, 'rooms' | 'openings' |
     line.spans.push([a, b]);
     segments.set(key, line);
   }
-  if (!input.floors?.length) {
+  if (input.floors === undefined) {
     for (const { name, bounds } of boxes) {
       const [a, b, c, d] = bounds;
       const x0 = xs.get(a)!, y0 = ys.get(b)!, x1 = xs.get(c)!, y1 = ys.get(d)!;
@@ -74,10 +75,24 @@ export function compileCandidates(input: Pick<Candidates, 'rooms' | 'openings' |
       }
     }
   }
-  if (input.floors?.length) {
-    plan.rooms = input.floors.map(({ name, polygon }, index) => ({
-      id: 'R' + (index + 1), name: name.trim() || 'Khu ' + (index + 1), polygon,
+  if (input.floors !== undefined) {
+    plan.rooms = input.floors.map(({ name, polygon, zoneId }, index) => ({
+      id: 'R' + (index + 1), name: name.trim() || 'Khu ' + (index + 1), polygon, zoneId,
     }));
+  }
+  const labels = new Map<string, Plan['rooms'][number]>();
+  const area = (room: Plan['rooms'][number]) => Math.abs(room.polygon.reduce((sum, p, i) => {
+    const q = room.polygon[(i+1) % room.polygon.length];
+    return sum + p[0]*q[1] - q[0]*p[1];
+  }, 0));
+  for (const room of plan.rooms) {
+    if (!room.zoneId) continue;
+    const previous = labels.get(room.zoneId);
+    room.showLabel = !room.zoneId.startsWith('face-') && (!previous || area(room) > area(previous));
+    if (room.showLabel) {
+      if (previous) previous.showLabel = false;
+      labels.set(room.zoneId, room);
+    }
   }
   for (const { axis, at, spans } of segments.values()) {
     const breaks = [...new Set(spans.flat())].sort((a, b) => a - b);

@@ -58,7 +58,7 @@ class PlansService {
       }
       if (!reconciled.candidates.walls?.length)
         return fail('INSUFFICIENT_WALL_EVIDENCE', 422, 'Chưa đối chiếu được nét tường trên ảnh. Chọn riêng vùng mặt bằng hoặc dùng bản rõ hơn.');
-      const plan = compileCandidates({ ...reconciled.candidates, floors: reconciled.floors,
+      const plan = compileCandidates({ ...reconciled.candidates, floors: reconciled.floors, passages: reconciled.passages,
         rejectedFeatures: candidates.rejectedFeatures, width, height });
       plan.issues.push(...reconciled.issues);
       if (!plan.rooms.length) return fail('INSUFFICIENT_GEOMETRY', 422, 'Chưa tìm được biên phòng có thể dựng. Chọn vùng rõ hơn.');

@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import * as T from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import type { Plan, Point } from '@plan2walk/floorplan';
-import { inRoom } from '@plan2walk/floorplan';
+import { inRoom, project } from '@plan2walk/floorplan';
 import { createModel } from './scene';
+import { WalkMotion } from './motion';
 
 export type Position = { point: Point; yaw: number; room: string };
 
@@ -17,6 +18,7 @@ export function Viewer({ plan, walking, start, top, zoom, selected, onSelect, on
   const current = useRef({ onExit, onPosition, top, zoom });
   current.current = { onExit, onPosition, top, zoom };
   const [failure, setFailure] = useState(false);
+  const [flying, setFlying] = useState(false);
 
   useEffect(() => {
     const container = host.current!;
@@ -50,6 +52,7 @@ export function Viewer({ plan, walking, start, top, zoom, selected, onSelect, on
     renderer.toneMapping = T.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.08;
     renderer.domElement.setAttribute('aria-label', walking ? 'Góc nhìn đi bộ 3D' : 'Mô hình mặt bằng 3D');
+    if (walking) renderer.domElement.tabIndex = 0;
     container.prepend(renderer.domElement);
 
     const camera = new T.PerspectiveCamera(walking ? 69 : 36, 1, .035, 150);
@@ -60,6 +63,9 @@ export function Viewer({ plan, walking, start, top, zoom, selected, onSelect, on
     controls.enablePan = false;
     controls.maxPolarAngle = Math.PI / 2.25;
     let player = start ?? plan.rooms[0].polygon[0];
+    let safePosition = player;
+    const motion = new WalkMotion();
+    setFlying(false);
     let yaw = Math.PI / 2, pitch = -.16;
     if (walking) {
       let best = -1;
@@ -126,6 +132,7 @@ export function Viewer({ plan, walking, start, top, zoom, selected, onSelect, on
     let drag: { x: number; y: number } | null = null;
     const pointerDown = (event: PointerEvent) => {
       if (!walking || event.button !== 0) return;
+      renderer.domElement.focus({ preventScroll: true });
       drag = { x: event.clientX, y: event.clientY };
       renderer.domElement.setPointerCapture(event.pointerId);
     };
@@ -137,7 +144,7 @@ export function Viewer({ plan, walking, start, top, zoom, selected, onSelect, on
       showPosition();
     };
     const pointerUp = () => { drag = null; };
-    const reset = () => { keys.clear(); pointerKeys.clear(); buttonKeys.clear(); drag = null; };
+    const reset = () => { keys.clear(); pointerKeys.clear(); buttonKeys.clear(); drag = null; motion.clearTap(); };
     function movementButton(target: EventTarget | null) {
       return target instanceof HTMLElement ? target.closest<HTMLButtonElement>('button[data-walk-key]') : null;
     }
@@ -150,13 +157,25 @@ export function Viewer({ plan, walking, start, top, zoom, selected, onSelect, on
     const movementUp = (event: PointerEvent) => { pointerKeys.delete(event.pointerId); };
     const keyDown = (event: KeyboardEvent) => {
       if (!walking || event.altKey || event.ctrlKey || event.metaKey ||
-        document.querySelector('dialog[open]') || (event.target instanceof HTMLElement && /INPUT|TEXTAREA|SELECT/.test(event.target.tagName))) return;
+        document.querySelector('dialog[open]') || (event.target instanceof HTMLElement &&
+          (event.target.isContentEditable || /INPUT|TEXTAREA|SELECT/.test(event.target.tagName)))) return;
       if (event.key === 'Escape') { reset(); current.current.onExit(); return; }
       const button = movementButton(event.target);
       if (button?.dataset.walkKey && (event.key === ' ' || event.key === 'Enter')) {
         event.preventDefault(); buttonKeys.add(button.dataset.walkKey); return;
       }
       const key = event.key.toLowerCase();
+      if (event.target instanceof HTMLElement && event.target.closest('button, a') && (key === ' ' || key === 'Enter')) return;
+      if (key === ' ') {
+        event.preventDefault();
+        const wasFlying = motion.flying;
+        motion.space(performance.now(), event.repeat);
+        if (wasFlying && !motion.flying && !model.walkable(player)) player = [...safePosition];
+        setFlying(motion.flying);
+        keys.add(key);
+        return;
+      }
+      if (key === 'shift') { keys.add(key); return; }
       if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
         event.preventDefault(); keys.add(key);
       }
@@ -179,11 +198,13 @@ export function Viewer({ plan, walking, start, top, zoom, selected, onSelect, on
     if (walking) showPosition();
     let last = performance.now();
     let previousPosition = 0;
+    let focusWalk = walking;
     const location = new T.Vector3();
     renderer.setAnimationLoop(time => {
       const delta = Math.min((time - last) / 1000, .035);
       last = time;
       if (walking) {
+        if (focusWalk) { renderer.domElement.focus({ preventScroll: true }); focusWalk = false; }
         if (document.querySelector('dialog[open]')) reset();
         const held = (key: string) => keys.has(key) || buttonKeys.has(key) || [...pointerKeys.values()].includes(key);
         const forward = Number(held('w') || keys.has('arrowup')) - Number(held('s') || keys.has('arrowdown'));
@@ -192,9 +213,17 @@ export function Viewer({ plan, walking, start, top, zoom, selected, onSelect, on
         const step = delta * 2.5 / model.unit / Math.max(1, Math.hypot(forward, sideways));
         const dx = (Math.sin(yaw) * forward + Math.cos(yaw) * sideways) * step;
         const dz = (-Math.cos(yaw) * forward + Math.sin(yaw) * sideways) * step;
-        if (dx && model.walkable([player[0] + dx, player[1]])) player = [player[0] + dx, player[1]];
-        if (dz && model.walkable([player[0], player[1] + dz])) player = [player[0], player[1] + dz];
-        camera.position.copy(model.local(player, 1.57));
+        if (dx && (motion.flying || model.walkable([player[0] + dx, player[1]]))) player = [player[0] + dx, player[1]];
+        if (dz && (motion.flying || model.walkable([player[0], player[1] + dz]))) player = [player[0], player[1] + dz];
+        if (model.walkable(player)) safePosition = [...player];
+        motion.step(delta, keys.has(' '), keys.has('shift'));
+        for (const piece of model.pieces) {
+          if (piece.bottom <= 0) continue;
+          const p = project(player, piece.wall), radius = .16 / model.unit;
+          if (p.along >= piece.start - radius && p.along <= piece.end + radius &&
+            p.across <= piece.wall.thickness / 2 + radius) motion.limitHeadroom(piece.bottom - 1.75);
+        }
+        camera.position.copy(model.local(player, 1.57 + motion.height));
         camera.lookAt(camera.position.x + Math.sin(yaw) * Math.cos(pitch), camera.position.y + Math.sin(pitch), camera.position.z - Math.cos(yaw) * Math.cos(pitch));
         if ((keys.size || pointerKeys.size || buttonKeys.size) && time - previousPosition > 60) { showPosition(); previousPosition = time; }
       } else {
@@ -241,9 +270,13 @@ export function Viewer({ plan, walking, start, top, zoom, selected, onSelect, on
   useEffect(() => { cameraActions.current?.setView(top, zoom); }, [top, zoom]);
 
   return <div className="viewer-canvas" ref={host}>
+    {walking && !failure && <div role="status" style={{ position: 'absolute', left: 12, top: 12, zIndex: 2, padding: '8px 12px', borderRadius: 10, background: '#ffffffed', color: '#172b4d', pointerEvents: 'none', fontSize: 13 }}>
+      {flying ? 'Bay tự do · Space ↑ · Shift ↓ · 2× Space để hạ xuống' : 'Đi bộ · Space để nhảy · 2× Space để bay'}
+      {plan.scale.status !== 'verified' && <div>Tỉ lệ chưa xác nhận — kích thước cửa và bước đi chỉ là tạm tính.</div>}
+    </div>}
     {failure && <p className="viewer-unavailable" role="status">Thiết bị chưa mở được WebGL. Có thể tiếp tục đối chiếu bản 2D.</p>}
     {!walking && !failure && <>
-      {plan.rooms.map(room => <span className="room-label" key={room.id} ref={node => {
+      {plan.rooms.filter(room => room.showLabel !== false).map(room => <span className="room-label" key={room.id} ref={node => {
         if (node) markers.current.set('room:' + room.id, node); else markers.current.delete('room:' + room.id);
       }}>{room.name}</span>)}
       {plan.openings.filter(item => item.type === 'door' && (item.id === selected || !item.reviewed)).map(door =>

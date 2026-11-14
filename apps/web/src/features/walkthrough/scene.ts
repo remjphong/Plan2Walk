@@ -118,7 +118,7 @@ export function createModel(plan: Plan, overview: boolean) {
       group.add(slab);
     }
     const middle = room.polygon.reduce<Point>((sum, p) => [sum[0] + p[0] / room.polygon.length, sum[1] + p[1] / room.polygon.length], [0, 0]);
-    labels.push({ id: room.id, title: room.name, location: local(middle, .12), kind: 'room' });
+    if (room.showLabel !== false) labels.push({ id: room.id, title: room.name, location: local(middle, .12), kind: 'room' });
   }
   for (const { wall, start, end, bottom, top } of geometry.pieces) {
     const length = distance(wall.a, wall.b);
@@ -146,7 +146,7 @@ export function createModel(plan: Plan, overview: boolean) {
       const spanM = (horiz ? w : d) * unit;
       const breadthM = (horiz ? d : w) * unit;
       const steps = Math.max(9, Math.min(12, Math.round(spanM / .24)));
-      const maxH = overview ? .58 : .98;
+      const maxH = .98;
       const riserH = maxH / steps;
       const treadRun = spanM / steps;
       const stairGroup = new T.Group();
@@ -228,10 +228,18 @@ export function createModel(plan: Plan, overview: boolean) {
         part(.05, .44, .95, .96, .47, .53, fabric);
         for (const u of [.11, .53]) part(u, .13, u + .36, .35, .47, .58, linen);
         break;
-      case 'table':
-        part(.04, .12, .96, .88, .69, .74, furnishing);
-        for (const u of [.08, .84]) for (const v of [.16, .76]) part(u, v, u + .08, v + .08, 0, .69, darkWood);
-        if (span >= 1.15 && depth >= .75) {
+      case 'table': {
+        const nearSofa = geometry.features.some(other => {
+          if (other.type !== 'sofa') return false;
+          const [sx, sy, sr, sb] = other.bounds;
+          const gapX = Math.max(sx - right, x - sr, 0);
+          const gapY = Math.max(sy - bottom, y - sb, 0);
+          return Math.hypot(gapX, gapY) < Math.min(sr - sx, sb - sy) * .6;
+        });
+        const tableTop = nearSofa ? .42 : .74;
+        part(.04, .12, .96, .88, tableTop - .05, tableTop, furnishing);
+        for (const u of [.08, .84]) for (const v of [.16, .76]) part(u, v, u + .08, v + .08, 0, tableTop - .05, darkWood);
+        if (!nearSofa && span >= 1.15 && depth >= .75) {
           const seats = Math.min(3, Math.max(2, Math.floor(span / .58)));
           for (let s = 0; s < seats; s++) {
             const u0 = .12 + (s + .15) * (.76 / seats), u1 = .12 + (s + .85) * (.76 / seats);
@@ -242,6 +250,7 @@ export function createModel(plan: Plan, overview: boolean) {
           }
         }
         break;
+      }
       case 'kitchen_counter':
         part(.01, .06, .99, .94, 0, .06, darkWood);
         part(0, 0, 1, .98, .06, .84, furnishing);

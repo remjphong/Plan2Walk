@@ -12,7 +12,8 @@ const featureBounds = z.tuple([coordinate, coordinate, coordinate, coordinate]);
 export const floorPlan = z.object({
   schemaVersion: z.literal(1), revision: z.number().int().nonnegative(),
   width: z.number().int().positive(), height: z.number().int().positive(),
-  rooms: z.array(z.object({ id: z.string(), name: z.string(), polygon: z.array(point).min(3) })),
+  rooms: z.array(z.object({ id: z.string(), name: z.string(), zoneId: z.string().optional(), showLabel: z.boolean().optional(), polygon: z.array(point).min(3) })),
+  passages: z.array(z.object({ a: point, b: point, thickness: z.number().positive() })).optional(),
   walls: z.array(z.object({ id: z.string(), a: point, b: point, thickness: z.number().positive() })),
   openings: z.array(opening), issues: z.array(issue),
   features: z.array(z.object({
